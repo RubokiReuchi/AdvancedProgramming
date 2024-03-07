@@ -121,7 +121,7 @@ int main()
     app.displaySize = ivec2(WINDOW_WIDTH, WINDOW_HEIGHT);
     app.isRunning   = true;
 
-		glfwSetErrorCallback(OnGlfwError);
+    glfwSetErrorCallback(OnGlfwError);
 
     if (!glfwInit())
     {
