@@ -6,6 +6,7 @@
 
 #include "platform.h"
 #include "BufferSupFunctions.h"
+#include "ModelLoadingFunctions.h"
 
 typedef glm::vec2  vec2;
 typedef glm::vec3  vec3;
@@ -34,6 +35,44 @@ struct Program
     std::string        filepath;
     std::string        programName;
     u64                lastWriteTimestamp; // What is this for?
+    ModelLoader::VertexShaderLayout shaderLayout;
+};
+
+struct Model
+{
+    u32 meshIdx;
+    std::vector<u32> materialIdx;
+};
+
+struct SubMesh
+{
+    ModelLoader::VertexBufferLayout vertexBufferLayout;
+    std::vector<float> vertices;
+    std::vector<u32> indices;
+    u32 vertexOffset;
+    u32 indexOffset;
+
+    std::vector<ModelLoader::VAO> vaos;
+};
+
+struct Mesh
+{
+    std::vector<SubMesh> subMeshes;
+    GLuint vertexBufferHandle;
+    GLuint indexBufferHandle;
+};
+
+struct Material
+{
+    std::string name;
+    vec3 albedo;
+    vec3 emissive;
+    f32 smoothness;
+    u32 albedoTextureIdx;
+    u32 emissiveTextureIdx;
+    u32 specularTextureIdx;
+    u32 normalsTextureIdx;
+    u32 bumpTextureIdx;
 };
 
 enum Mode
@@ -79,11 +118,18 @@ struct App
     ivec2 displaySize;
 
     std::vector<Texture>  textures;
+    std::vector<Material>  materials;
+    std::vector<Mesh>  meshes;
+    std::vector<Model>  models;
     std::vector<Program>  programs;
 
     // program indices
-    u32 texturedGeometryProgramIdx;
-    
+    u32 texturedGeometryProgramIdx = 0;
+    u32 texturedMeshProgramIdx = 0;
+
+    u32 patricioModel = 0;
+    GLuint texturedMeshProgram_uTexture;
+
     // texture indices
     u32 diceTexIdx;
     u32 whiteTexIdx;

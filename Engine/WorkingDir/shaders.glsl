@@ -13,7 +13,13 @@ out vec2 vTexCoord;
 void main()
 {
     vTexCoord = aTexCoord;
-    gl_Position = vec4(aPosition, 1.0);
+
+    float clippingScale = 5.0;
+
+    gl_Position = vec4(aPosition, clippingScale);
+
+    // flip Patrick
+    gl_Position.z = -gl_Position.z;
 }
 
 #elif defined(FRAGMENT) ///////////////////////////////////////////////
