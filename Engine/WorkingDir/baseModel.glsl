@@ -8,18 +8,15 @@ layout(location = 2) in vec2 aTexCoord;
 //layout(location = 3) in vec3 aTangent;
 //layout(location = 4) in vec3 aBitangent;
 
+uniform mat4 WVP;
+
 out vec2 vTexCoord;
 
 void main()
 {
     vTexCoord = aTexCoord;
 
-    float clippingScale = 5.0;
-
-    gl_Position = vec4(aPosition, clippingScale);
-
-    // flip Patrick
-    gl_Position.z = -gl_Position.z;
+    gl_Position = WVP * vec4(aPosition, 1.0);
 }
 
 #elif defined(FRAGMENT) ///////////////////////////////////////////////

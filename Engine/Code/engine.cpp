@@ -221,6 +221,8 @@ void Init(App* app)
     vertexBufferLayout.attributes.push_back(VertexBufferAttribute{2, 2, 3 * sizeof(float)});
     vertexBufferLayout.stride = 5 * sizeof(float);
 
+    glEnable(GL_DEPTH_TEST);
+
     app->mode = Mode_TexturedQuad;
 }
 
@@ -237,12 +239,38 @@ void Update(App* app)
     // You can handle app->input keyboard/mouse here
 }
 
+glm::mat4 TranformScale(const vec3& scaleFactors)
+{
+    return glm::scale(scaleFactors);
+}
+
+glm::mat4 TransformPositionScale(const vec3& position, const vec3& scaleFactors)
+{
+    return scale(glm::translate(position), scaleFactors);
+}
+
 void Render(App* app)
 {
     switch (app->mode)
     {
         case Mode_TexturedQuad:
         {
+            float aspectRatio = (float)app->displaySize.x / (float)app->displaySize.y;
+            float zNear = 0.1f;
+            float zFar = 1000.0f;
+            glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, zNear, zFar);
+
+            vec3 target = vec3(0, 0, 0);
+            vec3 camPos = vec3(5, 5, 5);
+            vec3 zCam = glm::normalize(camPos - target);
+            vec3 xCam = glm::cross(zCam, vec3(0, 1, 0));
+            vec3 yCam = glm::cross(xCam, zCam);
+
+            glm::mat4 view = glm::lookAt(camPos, target, yCam);
+
+            glm::mat4 world = TransformPositionScale(vec3(0, 2, 0), vec3(0.45f));
+            glm::mat4 WVP = projection * view * world;
+
             glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -253,6 +281,8 @@ void Render(App* app)
 
             Model& model = app->models[app->patricioModel];
             Mesh& mesh = app->meshes[model.meshIdx];
+
+            glUniformMatrix4fv(glGetUniformLocation(texturedMeshProgram.handle, "WVP"), 1, GL_FALSE, &WVP[0][0]);
 
             for (u32 i = 0; i < mesh.subMeshes.size(); ++i)
             {
