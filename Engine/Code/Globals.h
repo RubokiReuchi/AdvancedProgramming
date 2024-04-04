@@ -181,6 +181,20 @@ struct Entity
     u32 localParamSize;
 };
 
+enum LightType
+{
+    LightType_Directional,
+    LightType_Point
+};
+
+struct Light
+{
+    LightType type;
+    vec3 color;
+    vec3 direction;
+    vec3 position;
+};
+
 #define ILOG(...)                 \
 {                                 \
 char logBuffer[1024] = {};        \

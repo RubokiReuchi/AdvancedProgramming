@@ -174,6 +174,16 @@ GLuint FindVAO(Mesh& mesh, u32 subMeshIdx, const Program& program)
     return returnValue;
 }
 
+glm::mat4 TranformScale(const vec3& scaleFactors)
+{
+    return glm::scale(scaleFactors);
+}
+
+glm::mat4 TransformPositionScale(const vec3& position, const vec3& scaleFactors)
+{
+    return scale(glm::translate(position), scaleFactors);
+}
+
 void Init(App* app)
 {
     // TODO: Initialize your resources here!
@@ -214,7 +224,8 @@ void Init(App* app)
     app->texturedGeometryProgramIdx = LoadProgram(app, "baseModel.glsl", "BASE_MODEL");
     const Program& texturedGeometryProgram = app->programs[app->texturedGeometryProgramIdx];
     app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
-    u32 patrickMoedlIndex = ModelLoader::LoadModel(app, "Patrick/Patrick.obj");
+    u32 patrickModelIndex = ModelLoader::LoadModel(app, "Patrick/Patrick.obj");
+    u32 groundModelIndex = ModelLoader::LoadModel(app, "./Ground.obj");
 
     VertexBufferLayout vertexBufferLayout = {};
     vertexBufferLayout.attributes.push_back(VertexBufferAttribute{ 0, 3, 0 });
@@ -228,9 +239,14 @@ void Init(App* app)
 
     app->localUniformBuffer = CreateConstantBuffer(app->maxUniformBufferSize);
 
-    app->entities.push_back({ glm::identity<glm::mat4>(), patrickMoedlIndex, 0, 0 });
-    app->entities.push_back({ glm::identity<glm::mat4>(), patrickMoedlIndex, 0, 0 });
-    app->entities.push_back({ glm::identity<glm::mat4>(), patrickMoedlIndex, 0, 0 });
+    app->entities.push_back({ TransformPositionScale(vec3(2.0, 0.0, -4.0), vec3(1.0, 1.0, 1.0)), patrickModelIndex, 0, 0 });
+    app->entities.push_back({ TransformPositionScale(vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)), patrickModelIndex, 0, 0 });
+    app->entities.push_back({ TransformPositionScale(vec3(-2.0, 0.0, 4.0), vec3(1.0, 1.0, 1.0)), patrickModelIndex, 0, 0 });
+
+    app->entities.push_back({ TransformPositionScale(vec3(0.0, -5.0, 0.0), vec3(1.0, 1.0, 1.0)), groundModelIndex, 0, 0});
+
+    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(1.0, -1.0, 1.0), vec3(0.0, 0.0, 0.0) });
+    //app->lights.push_back({ LightType::LightType_Point, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0) });
 
     app->mode = Mode_TexturedQuad;
 }
@@ -248,16 +264,6 @@ void Update(App* app)
     // You can handle app->input keyboard/mouse here
 }
 
-glm::mat4 TranformScale(const vec3& scaleFactors)
-{
-    return glm::scale(scaleFactors);
-}
-
-glm::mat4 TransformPositionScale(const vec3& position, const vec3& scaleFactors)
-{
-    return scale(glm::translate(position), scaleFactors);
-}
-
 void Render(App* app)
 {
     switch (app->mode)
@@ -273,11 +279,12 @@ void Render(App* app)
         const Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
         glUseProgram(texturedMeshProgram.handle);
 
+        glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->localUniformBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
         for (auto it = app->entities.begin(); it != app->entities.end(); ++it)
         {
             glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->localUniformBuffer.handle, it->localParamsOffset, it->localParamSize);
 
-            Model& model = app->models[app->patricioModel];
+            Model& model = app->models[it->modelIndex];
             Mesh& mesh = app->meshes[model.meshIdx];
 
             for (u32 i = 0; i < mesh.subMeshes.size(); ++i)
@@ -319,10 +326,30 @@ void App::UpdateEntityBuffer()
     glm::mat4 view = glm::lookAt(camPos, target, yCam);
 
     BufferManager::MapBuffer(localUniformBuffer, GL_WRITE_ONLY);
+
+    // Global Params
+    globalParamsOffset = localUniformBuffer.head;
+    PushVec3(localUniformBuffer, camPos);
+    PushUInt(localUniformBuffer, lights.size());
+
+    for (size_t i = 0; i < lights.size(); ++i)
+    {
+        BufferManager::AlignHead(localUniformBuffer, sizeof(vec4));
+
+        Light& light = lights[i];
+        PushUInt(localUniformBuffer, light.type);
+        PushVec3(localUniformBuffer, light.color);
+        PushVec3(localUniformBuffer, light.direction);
+        PushVec3(localUniformBuffer, light.position);
+    }
+
+    globalParamsSize = localUniformBuffer.head - globalParamsOffset;
+
+    // Local Params
     u32 iterator = 0;
     for (auto it = entities.begin(); it != entities.end(); ++it)
     {
-        glm::mat4 world = TransformPositionScale(vec3(0 + iterator, 2, 0), vec3(0.45f));
+        glm::mat4 world = it->worldMatrix;
         glm::mat4 WVP = projection * view * world;
 
         Buffer& localBuffer = localUniformBuffer;
