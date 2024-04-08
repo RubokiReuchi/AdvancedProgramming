@@ -154,7 +154,8 @@ struct Material
 
 enum Mode
 {
-    Mode_TexturedQuad,
+    Mode_Forward,
+    Mode_Deferred,
     Mode_Count
 };
 
