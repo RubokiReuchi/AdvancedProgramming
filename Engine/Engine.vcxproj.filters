@@ -112,7 +112,13 @@
     <None Include="WorkingDir\shaders.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="WorkingDir\baseModel.glsl">
+    <None Include="WorkingDir\renderToBackBuffer.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="WorkingDir\renderToFrameBuffer.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="WorkingDir\frameBufferToQuad.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

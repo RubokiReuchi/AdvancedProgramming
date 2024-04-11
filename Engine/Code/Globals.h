@@ -196,6 +196,13 @@ struct Light
     vec3 position;
 };
 
+struct FrameBuffer
+{
+    GLuint fbHandle;
+    std::vector<GLuint> colorAttachments;
+    GLuint depthHandle;
+};
+
 #define ILOG(...)                 \
 {                                 \
 char logBuffer[1024] = {};        \

@@ -24,6 +24,10 @@ struct App
 {
     void UpdateEntityBuffer();
 
+    void ConfigureFrameBuffer(FrameBuffer& configFB, const u32 colorAttachmentsCount);
+
+    void RenderGeometry(const Program& bindedProgram);
+
     // Loop
     f32  deltaTime;
     bool isRunning;
@@ -44,8 +48,10 @@ struct App
     std::vector<Program>  programs;
 
     // program indices
-    u32 texturedGeometryProgramIdx = 0;
-    u32 texturedMeshProgramIdx = 0;
+    GLuint renderToBackBufferShader;
+
+    GLuint renderToFrameBufferShader;
+    GLuint frameBufferToQuadShader;
 
     GLuint texturedMeshProgram_uTexture;
 
@@ -81,8 +87,7 @@ struct App
     GLint globalParamsOffset;
     GLint globalParamsSize;
 
-    GLuint frameBufferHandle;
-    GLuint colorAttachmentHandle;
+    FrameBuffer deferredFrameBuffer;
 };
 
 void Init(App* app);

@@ -1,4 +1,4 @@
-#ifdef BASE_MODEL
+#ifdef RENDER_TO_BACK_BUFFER
 
 #if defined(VERTEX) ///////////////////////////////////////////////////
 

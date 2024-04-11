@@ -52,7 +52,9 @@
     <ClInclude Include="ThirdParty\stb\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="WorkingDir\baseModel.glsl" />
+    <None Include="WorkingDir\frameBufferToQuad.glsl" />
+    <None Include="WorkingDir\renderToBackBuffer.glsl" />
+    <None Include="WorkingDir\renderToFrameBuffer.glsl" />
     <None Include="WorkingDir\shaders.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
