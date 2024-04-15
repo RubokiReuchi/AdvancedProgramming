@@ -226,12 +226,12 @@ void Init(App* app)
 
     // Deferred Mode
     app->renderToFrameBufferShader = LoadProgram(app, "renderToFrameBuffer.glsl", "RENDER_TO_FRAMEBUFFER");
-    app->frameBufferToQuadShader = LoadProgram(app, "frameBufferToQuad.glsl", "FRAMEBUFFER_TO_QUAD");
+    //app->frameBufferToQuadShader = LoadProgram(app, "frameBufferToQuad.glsl", "FRAMEBUFFER_TO_QUAD");
 
     const Program& texturedGeometryProgram = app->programs[app->renderToBackBufferShader];
     app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
     u32 patrickModelIndex = ModelLoader::LoadModel(app, "Patrick/Patrick.obj");
-    u32 groundModelIndex = ModelLoader::LoadModel(app, "./Ground.obj");
+    u32 groundModelIndex = ModelLoader::LoadModel(app, "Patrick/Ground.obj");
 
     VertexBufferLayout vertexBufferLayout = {};
     vertexBufferLayout.attributes.push_back(VertexBufferAttribute{ 0, 3, 0 });
