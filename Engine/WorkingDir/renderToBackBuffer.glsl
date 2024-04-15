@@ -8,8 +8,6 @@ layout(location = 2) in vec2 aTexCoord;
 //layout(location = 3) in vec3 aTangent;
 //layout(location = 4) in vec3 aBitangent;
 
-//uniform mat4 WVP;
-
 struct Light
 {
     uint type;
