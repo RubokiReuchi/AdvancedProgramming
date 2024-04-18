@@ -90,6 +90,8 @@ struct App
     GLint globalParamsSize;
 
     FrameBuffer deferredFrameBuffer;
+
+    int shownTextureIndex = 0;
 };
 
 void Init(App* app);

@@ -280,12 +280,23 @@ void Gui(App* app)
         ImGui::EndCombo();
     }
 
+    
     if (app->mode == Mode_Deferred)
     {
-        for (size_t i = 0; i < app->deferredFrameBuffer.colorAttachments.size(); i++)
+        const char* colorAttachments[] = { "Albedo", "Normals", "Position", "Lighting" };
+        if (ImGui::BeginCombo("Color Attachment", colorAttachments[app->shownTextureIndex]))
         {
-            ImGui::Image(ImTextureID(app->deferredFrameBuffer.colorAttachments[i]), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
+            for (int n = 0; n < ARRAY_COUNT(colorAttachments); n++)
+            {
+                bool is_selected = (app->shownTextureIndex == n);
+                if (ImGui::Selectable(colorAttachments[n], is_selected))
+                {
+                    app->shownTextureIndex = n;
+                }
+            }
+            ImGui::EndCombo();
         }
+        ImGui::Image(ImTextureID(app->deferredFrameBuffer.colorAttachments[app->shownTextureIndex]), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
     }
 
     ImGui::End();
