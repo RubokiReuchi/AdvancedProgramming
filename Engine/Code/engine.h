@@ -23,10 +23,12 @@ const u16 indices[] = {
 struct App
 {
     void UpdateEntityBuffer();
+    void UpdateIndicatorsBuffer();
 
     void ConfigureFrameBuffer(FrameBuffer& configFB);
 
     void RenderGeometry(const Program& bindedProgram);
+    void RenderIndicatorsGeometry();
 
     const GLuint CreateTexture(const bool isFloatingPoint = false);
 
@@ -54,6 +56,8 @@ struct App
 
     GLuint renderToFrameBufferShader;
     GLuint frameBufferToQuadShader;
+
+    GLuint renderIndicatorsShader;
 
     GLuint texturedMeshProgram_uTexture;
 
@@ -85,6 +89,7 @@ struct App
     Buffer localUniformBuffer;
     std::vector<Entity> entities;
     std::vector<Light> lights;
+    std::vector<Entity> lightsIndicators;
 
     GLint globalParamsOffset;
     GLint globalParamsSize;

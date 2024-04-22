@@ -228,6 +228,8 @@ void Init(App* app)
     app->renderToFrameBufferShader = LoadProgram(app, "renderToFrameBuffer.glsl", "RENDER_TO_FRAMEBUFFER");
     app->frameBufferToQuadShader = LoadProgram(app, "frameBufferToQuad.glsl", "FRAMEBUFFER_TO_QUAD");
 
+    app->renderIndicatorsShader = LoadProgram(app, "shaders.glsl", "RENDER_INDICATORS");
+
     const Program& texturedGeometryProgram = app->programs[app->renderToBackBufferShader];
     app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
     u32 patrickModelIndex = ModelLoader::LoadModel(app, "Patrick/Patrick.obj");
@@ -252,12 +254,22 @@ void Init(App* app)
 
     app->entities.push_back({ TransformPositionScale(vec3(0.0, -5.0, 0.0), vec3(1.0, 1.0, 1.0)), groundModelIndex, 0, 0});
 
-    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(1.0, -1.0, 1.0), vec3(0.0, 0.0, 0.0) });
-    app->lights.push_back({ LightType::LightType_Point, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0) });
+    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 2.5, 0.0) });
+    app->lights.push_back({ LightType::LightType_Point, vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0) });
 
     app->ConfigureFrameBuffer(app->deferredFrameBuffer);
 
     app->mode = Mode_Deferred;
+
+    // lights indicators
+    u32 squareModelIndex = ModelLoader::LoadModel(app, "Patrick/Quad.obj");
+    u32 sphereModelIndex = ModelLoader::LoadModel(app, "Patrick/Sphere.obj");
+
+    for (size_t i = 0; i < app->lights.size(); ++i)
+    {
+        u32 indicatorModel = (app->lights[i].type == LightType::LightType_Directional) ? squareModelIndex : sphereModelIndex;
+        app->lightsIndicators.push_back({ TransformPositionScale(app->lights[i].position, vec3(0.3, 0.3, 0.3)), indicatorModel, 0, 0 });
+    }
 }
 
 void Gui(App* app)
@@ -326,6 +338,7 @@ void Render(App* app)
 
         app->RenderGeometry(forwardProgram);
 
+        glUseProgram(0);
     }
     break;
     case Mode_Deferred:
@@ -388,6 +401,12 @@ void Render(App* app)
     break;
     default:;
     }
+
+    // lights indicators
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    app->UpdateIndicatorsBuffer();
+    app->RenderIndicatorsGeometry();
 }
 
 void App::UpdateEntityBuffer()
@@ -428,6 +447,41 @@ void App::UpdateEntityBuffer()
     // Local Params
     u32 iterator = 0;
     for (auto it = entities.begin(); it != entities.end(); ++it)
+    {
+        glm::mat4 world = it->worldMatrix;
+        glm::mat4 WVP = projection * view * world;
+
+        Buffer& localBuffer = localUniformBuffer;
+        BufferManager::AlignHead(localBuffer, uniformBlockAlignment);
+        it->localParamsOffset = localBuffer.head;
+        PushMat4(localBuffer, world);
+        PushMat4(localBuffer, WVP);
+        it->localParamSize = localBuffer.head - it->localParamsOffset;
+        iterator++;
+    }
+    BufferManager::UnmapBuffer(localUniformBuffer);
+}
+
+void App::UpdateIndicatorsBuffer()
+{
+    float aspectRatio = (float)displaySize.x / (float)displaySize.y;
+    float zNear = 0.1f;
+    float zFar = 1000.0f;
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, zNear, zFar);
+
+    vec3 target = vec3(0, 0, 0);
+    vec3 camPos = vec3(5, 5, 5);
+    vec3 zCam = glm::normalize(camPos - target);
+    vec3 xCam = glm::cross(zCam, vec3(0, 1, 0));
+    vec3 yCam = glm::cross(xCam, zCam);
+
+    glm::mat4 view = glm::lookAt(camPos, target, yCam);
+
+    BufferManager::MapBuffer(localUniformBuffer, GL_WRITE_ONLY);
+
+    // Local Params
+    u32 iterator = 0;
+    for (auto it = lightsIndicators.begin(); it != lightsIndicators.end(); ++it)
     {
         glm::mat4 world = it->worldMatrix;
         glm::mat4 WVP = projection * view * world;
@@ -510,6 +564,32 @@ void App::RenderGeometry(const Program& bindedProgram)
             glDrawElements(GL_TRIANGLES, subMesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)subMesh.indexOffset);
         }
     }
+}
+
+
+void App::RenderIndicatorsGeometry()
+{
+    const Program& program = programs[renderIndicatorsShader];
+    glUseProgram(program.handle);
+
+    glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), localUniformBuffer.handle, globalParamsOffset, globalParamsSize);
+    for (auto it = lightsIndicators.begin(); it != lightsIndicators.end(); ++it)
+    {
+        glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), localUniformBuffer.handle, it->localParamsOffset, it->localParamSize);
+
+        Model& model = models[it->modelIndex];
+        Mesh& mesh = meshes[model.meshIdx];
+
+        for (u32 i = 0; i < mesh.subMeshes.size(); ++i)
+        {
+            GLuint vao = FindVAO(mesh, i, program);
+            glBindVertexArray(vao);
+
+            SubMesh& subMesh = mesh.subMeshes[i];
+            glDrawElements(GL_TRIANGLES, subMesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)subMesh.indexOffset);
+        }
+    }
+    glUseProgram(0);
 }
 
 const GLuint App::CreateTexture(const bool isFloatingPoint)
