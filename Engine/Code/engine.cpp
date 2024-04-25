@@ -184,6 +184,11 @@ glm::mat4 TransformPositionScale(const vec3& position, const vec3& scaleFactors)
     return scale(glm::translate(position), scaleFactors);
 }
 
+glm::mat4 RotateMatrix(const glm::mat4 matrix, const vec3& direction)
+{
+    return glm::rotate(matrix, 1.0f, direction);
+}
+
 void Init(App* app)
 {
     // TODO: Initialize your resources here!
@@ -271,6 +276,7 @@ void Init(App* app)
     {
         u32 indicatorModel = (app->lights[i].type == LightType::LightType_Directional) ? squareModelIndex : sphereModelIndex;
         app->lightsIndicators.push_back({ TransformPositionScale(app->lights[i].position, vec3(0.3, 0.3, 0.3)), indicatorModel, 0, 0 });
+        app->lightsIndicators[i].worldMatrix = RotateMatrix(app->lightsIndicators[i].worldMatrix, app->lights[i].direction);
     }
 }
 
