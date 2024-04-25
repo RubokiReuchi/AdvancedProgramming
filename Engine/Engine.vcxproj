@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Code\BufferSupFunctions.cpp" />
+    <ClCompile Include="Code\Camera.cpp" />
     <ClCompile Include="Code\engine.cpp" />
     <ClCompile Include="Code\ModelLoadingFunctions.cpp" />
     <ClCompile Include="Code\platform.cpp" />
@@ -35,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code\BufferSupFunctions.h" />
+    <ClInclude Include="Code\Camera.h" />
     <ClInclude Include="Code\engine.h" />
     <ClInclude Include="Code\Globals.h" />
     <ClInclude Include="Code\ModelLoadingFunctions.h" />

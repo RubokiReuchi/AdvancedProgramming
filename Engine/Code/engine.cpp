@@ -221,6 +221,8 @@ void Init(App* app)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    app->camera.SetCamera(app->displaySize.x, app->displaySize.y, vec3(5, 5, 5));
+
     // Forward Mode
     app->renderToBackBufferShader = LoadProgram(app, "renderToBackBuffer.glsl", "RENDER_TO_BACK_BUFFER");
 
@@ -316,7 +318,68 @@ void Gui(App* app)
 
 void Update(App* app)
 {
-    // You can handle app->input keyboard/mouse here
+    if (app->input.mouseButtons[1] == BUTTON_PRESSED) // Mouse left
+    {
+        if (app->input.keys[33] == BUTTON_PRESSED) // W
+        {
+            app->camera.position += app->camera.speed * glm::normalize(app->camera.direction);
+        }
+        else if (app->input.keys[29] == BUTTON_PRESSED) // S
+        {
+            app->camera.position -= app->camera.speed * glm::normalize(app->camera.direction);
+        }
+        else if (app->input.keys[14] == BUTTON_PRESSED) // D
+        {
+            app->camera.position += app->camera.speed * glm::normalize(glm::cross(app->camera.direction, app->camera.up));
+        }
+        else if (app->input.keys[11] == BUTTON_PRESSED) // A
+        {
+            app->camera.position -= app->camera.speed * glm::normalize(glm::cross(app->camera.direction, app->camera.up));
+        }
+        else if (app->input.keys[15] == BUTTON_PRESSED) // E
+        {
+            app->camera.position += app->camera.speed * glm::normalize(app->camera.up);
+        }
+        else if (app->input.keys[27] == BUTTON_PRESSED) // Q
+        {
+            app->camera.position -= app->camera.speed * glm::normalize(app->camera.up);
+        }
+        if (app->input.mouseDelta != vec2(0, 0))
+        {
+            app->Rotate(-glm::radians(app->input.mouseDelta.x), 0, 0, app->camera.direction);
+        }
+    }
+}
+
+void App::Rotate(float pitch, float roll, float yaw, vec3& dir) {
+    float cosa = cos(yaw);
+    float sina = sin(yaw);
+
+    float cosb = cos(pitch);
+    float sinb = sin(pitch);
+
+    float cosc = cos(roll);
+    float sinc = sin(roll);
+
+    float Axx = cosa * cosb;
+    float Axy = cosa * sinb * sinc - sina * cosc;
+    float Axz = cosa * sinb * cosc + sina * sinc;
+
+    float Ayx = sina * cosb;
+    float Ayy = sina * sinb * sinc + cosa * cosc;
+    float Ayz = sina * sinb * cosc - cosa * sinc;
+
+    float Azx = -sinb;
+    float Azy = cosb * sinc;
+    float Azz = cosb * cosc;
+
+    float px = dir.x;
+    float py = dir.y;
+    float pz = dir.z;
+
+    dir.x = Axx * px + Axy * py + Axz * pz;
+    dir.y = Ayx * px + Ayy * py + Ayz * pz;
+    dir.z = Azx * px + Azy * py + Azz * pz;
 }
 
 void Render(App* app)
@@ -411,24 +474,14 @@ void Render(App* app)
 
 void App::UpdateEntityBuffer()
 {
-    float aspectRatio = (float)displaySize.x / (float)displaySize.y;
-    float zNear = 0.1f;
-    float zFar = 1000.0f;
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, zNear, zFar);
-
-    vec3 target = vec3(0, 0, 0);
-    vec3 camPos = vec3(5, 5, 5);
-    vec3 zCam = glm::normalize(camPos - target);
-    vec3 xCam = glm::cross(zCam, vec3(0, 1, 0));
-    vec3 yCam = glm::cross(xCam, zCam);
-
-    glm::mat4 view = glm::lookAt(camPos, target, yCam);
+    camera.UpdateCameraAspectRatio(displaySize.x, displaySize.y);
+    camera.Matrix(60.0f, 0.1f, 1000.0f);
 
     BufferManager::MapBuffer(localUniformBuffer, GL_WRITE_ONLY);
 
     // Global Params
     globalParamsOffset = localUniformBuffer.head;
-    PushVec3(localUniformBuffer, camPos);
+    PushVec3(localUniformBuffer, camera.position);
     PushUInt(localUniformBuffer, lights.size());
 
     for (size_t i = 0; i < lights.size(); ++i)
@@ -449,7 +502,7 @@ void App::UpdateEntityBuffer()
     for (auto it = entities.begin(); it != entities.end(); ++it)
     {
         glm::mat4 world = it->worldMatrix;
-        glm::mat4 WVP = projection * view * world;
+        glm::mat4 WVP = camera.projection * camera.view * world;
 
         Buffer& localBuffer = localUniformBuffer;
         BufferManager::AlignHead(localBuffer, uniformBlockAlignment);
@@ -464,18 +517,8 @@ void App::UpdateEntityBuffer()
 
 void App::UpdateIndicatorsBuffer()
 {
-    float aspectRatio = (float)displaySize.x / (float)displaySize.y;
-    float zNear = 0.1f;
-    float zFar = 1000.0f;
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, zNear, zFar);
-
-    vec3 target = vec3(0, 0, 0);
-    vec3 camPos = vec3(5, 5, 5);
-    vec3 zCam = glm::normalize(camPos - target);
-    vec3 xCam = glm::cross(zCam, vec3(0, 1, 0));
-    vec3 yCam = glm::cross(xCam, zCam);
-
-    glm::mat4 view = glm::lookAt(camPos, target, yCam);
+    camera.UpdateCameraAspectRatio(displaySize.x, displaySize.y);
+    camera.Matrix(60.0f, 0.1f, 1000.0f);
 
     BufferManager::MapBuffer(localUniformBuffer, GL_WRITE_ONLY);
 
@@ -484,7 +527,7 @@ void App::UpdateIndicatorsBuffer()
     for (auto it = lightsIndicators.begin(); it != lightsIndicators.end(); ++it)
     {
         glm::mat4 world = it->worldMatrix;
-        glm::mat4 WVP = projection * view * world;
+        glm::mat4 WVP = camera.projection * camera.view * world;
 
         Buffer& localBuffer = localUniformBuffer;
         BufferManager::AlignHead(localBuffer, uniformBlockAlignment);

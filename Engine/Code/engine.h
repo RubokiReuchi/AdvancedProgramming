@@ -7,6 +7,7 @@
 #include "platform.h"
 #include "BufferSupFunctions.h"
 #include "Globals.h"
+#include "Camera.h"
 
 const VertexV3V2 vertices[] = {
     {glm::vec3(-1.0,-1.0,0.0), glm::vec2(0.0,0.0)},
@@ -31,6 +32,10 @@ struct App
     void RenderIndicatorsGeometry();
 
     const GLuint CreateTexture(const bool isFloatingPoint = false);
+
+    // Camera
+    Camera camera;
+    void Rotate(float pitch, float roll, float yaw, vec3& dir);
 
     // Loop
     f32  deltaTime;
