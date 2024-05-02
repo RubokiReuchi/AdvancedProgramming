@@ -303,7 +303,7 @@ void Gui(App* app)
     
     if (app->mode == Mode_Deferred)
     {
-        const char* colorAttachments[] = { "Albedo", "Normals", "Position", "Lighting", "Depth"};
+        const char* colorAttachments[] = { "Albedo", "Normals", "Position", "ViewDir", "Depth" };
         if (ImGui::BeginCombo("Color Attachment", colorAttachments[app->shownTextureIndex]))
         {
             for (int n = 0; n < ARRAY_COUNT(colorAttachments); n++)
@@ -563,6 +563,8 @@ void App::ConfigureFrameBuffer(FrameBuffer& configFB)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    GLint swizzle[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
+    glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glGenFramebuffers(1, &configFB.fbHandle);
