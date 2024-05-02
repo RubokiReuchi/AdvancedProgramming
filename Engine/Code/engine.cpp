@@ -303,7 +303,7 @@ void Gui(App* app)
     
     if (app->mode == Mode_Deferred)
     {
-        const char* colorAttachments[] = { "Albedo", "Normals", "Position", "Lighting" };
+        const char* colorAttachments[] = { "Albedo", "Normals", "Position", "Lighting", "Depth"};
         if (ImGui::BeginCombo("Color Attachment", colorAttachments[app->shownTextureIndex]))
         {
             for (int n = 0; n < ARRAY_COUNT(colorAttachments); n++)
@@ -316,7 +316,8 @@ void Gui(App* app)
             }
             ImGui::EndCombo();
         }
-        ImGui::Image(ImTextureID(app->deferredFrameBuffer.colorAttachments[app->shownTextureIndex]), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
+        if (app->shownTextureIndex == ARRAY_COUNT(colorAttachments) - 1) ImGui::Image(ImTextureID(app->deferredFrameBuffer.depthHandle), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
+        else ImGui::Image(ImTextureID(app->deferredFrameBuffer.colorAttachments[app->shownTextureIndex]), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
     }
 
     ImGui::End();
