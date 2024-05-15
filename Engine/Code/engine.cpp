@@ -316,8 +316,7 @@ void Gui(App* app)
             }
             ImGui::EndCombo();
         }
-        if (app->shownTextureIndex == ARRAY_COUNT(colorAttachments) - 1) ImGui::Image(ImTextureID(app->deferredFrameBuffer.depthHandle), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
-        else ImGui::Image(ImTextureID(app->deferredFrameBuffer.colorAttachments[app->shownTextureIndex]), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image(ImTextureID(app->deferredFrameBuffer.colorAttachments[app->shownTextureIndex]), ImVec2(250, 150), ImVec2(0, 1), ImVec2(1, 0));
     }
 
     ImGui::End();
@@ -554,6 +553,7 @@ void App::ConfigureFrameBuffer(FrameBuffer& configFB)
     configFB.colorAttachments.push_back(CreateTexture(true));
     configFB.colorAttachments.push_back(CreateTexture(true));
     configFB.colorAttachments.push_back(CreateTexture(true));
+    configFB.colorAttachments.push_back(CreateTexture(true));
 
     glGenTextures(1, &configFB.depthHandle);
     glBindTexture(GL_TEXTURE_2D, configFB.depthHandle);
@@ -563,8 +563,6 @@ void App::ConfigureFrameBuffer(FrameBuffer& configFB)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    GLint swizzle[4] = { GL_RED, GL_RED, GL_RED, GL_ONE };
-    glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glGenFramebuffers(1, &configFB.fbHandle);
