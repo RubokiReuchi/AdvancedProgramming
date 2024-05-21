@@ -72,7 +72,7 @@ layout(location = 3) out vec4 oViewDir;
 layout(location = 4) out vec4 oDepth;
 
 float near = 0.1f;
-float far = 100.0f;
+float far = 5.0f;
 
 float linearizeDepth(float depth)
 {
@@ -85,7 +85,7 @@ void main()
     oNormals = vec4(vNormal, 1.0);
     oPosition = vec4(vPosition, 1.0);
     oViewDir = vec4(vViewDir, 1.0);
-    oDepth = vec4(vec3(linearizeDepth(gl_FragCoord.z) / far), 1.0f);
+    oDepth = vec4(vec3(1 - (linearizeDepth(gl_FragCoord.z) / far)), 1.0f);
 }
 
 #endif

@@ -261,8 +261,13 @@ void Init(App* app)
 
     app->entities.push_back({ TransformPositionScale(vec3(0.0, -5.0, 0.0), vec3(1.0, 1.0, 1.0)), groundModelIndex, 0, 0});
 
-    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 2.5, 0.0) });
-    app->lights.push_back({ LightType::LightType_Point, vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0) });
+    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(-1.0, -1.0, 0.0), vec3(0.0, 3.0, 0.0) });
+    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(0.0, -1.0, 1.0), vec3(0.0, 5.0, 0.0) });
+    app->lights.push_back({ LightType::LightType_Directional, vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, -1.0), vec3(0.0, 7.0, 0.0) });
+
+    app->lights.push_back({ LightType::LightType_Point, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(-7.0, 1.0, -2.0) });
+    app->lights.push_back({ LightType::LightType_Point, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 2.0, -1.0) });
+    app->lights.push_back({ LightType::LightType_Point, vec3(0.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(3.0, 3.0, 5.0) });
 
     app->ConfigureFrameBuffer(app->deferredFrameBuffer);
 
